@@ -20,7 +20,7 @@ renderer 仍是浏览器客户端：关闭 Node 集成，启用上下文隔离�
 
 当前平台的打包命令会构建仓库，使用 `pnpm deploy --prod --legacy` 创建独立生产依赖树，验证已部署插件图中每个非 optional 的 `@deepseek-ai` peer provider 均可解析，为 Electron ABI 重建原生模块，再将该部署交给 Electron Packager。桌面 manifest 会显式提供组合层 peer provider；在 monorepo 开发安装中，这些 provider 原本由根级 hoist 暴露。生产环境通过 Electron 的 run-as-Node 模式运行 CLI，并带上 Cordis HMR 所需的 `--expose-internals`；开发环境通过 pnpm 的 Node 可执行文件运行 CLI，因此 workspace 安装不会被重建成偏离普通 Node ABI 的状态。
 
-应用保持解包状态，不使用 ASAR，因为 Harness 依赖包含需要普通文件系统路径的原生模块和可执行 helper。Packager 会在不展开合法 peer 循环的前提下保留生产部署的 pnpm 依赖图，再把 staging 绝对链接改写为包内相对目标，并验证每个链接都在应用内解析。代码签名、公证和更新属于发布分发工作，而不是启动行为。
+应用保持解包状态，不使用 ASAR，因为 Harness 依赖包含需要普通文件系统路径的原生模块和可执行 helper。普通未归档构建会在不展开合法 peer 循环的前提下保留生产部署的 pnpm 依赖图，再把 staging 绝对链接改写为包内相对目标，并验证每个链接都在应用内解析。Windows 安装器构建会请求 pnpm 生成等价的 hoisted 生产布局，使 NSIS 载荷归档器不会递归进入循环目录链接。代码签名、公证和更新属于发布分发工作，而不是启动行为。
 
 仓库 CI 会在 GitHub 原生托管 runner 上分别打包 macOS arm64／x64 与 Windows arm64／x64。每条 lane 都会冒烟测试打包后的可执行文件，再把同一个预打包目录包装为面向用户的 DMG 或引导式 NSIS 安装器，并保留便携 ZIP 备用包；`desktop-v*` 标签会把全部八个产物汇聚到同一个 GitHub prerelease。应用会携带原创模块化鲸鱼图标的原生 ICNS／ICO 版本，该图标会让人联想到 Harness 用途，但不复制 DeepSeek 官方标识。
 

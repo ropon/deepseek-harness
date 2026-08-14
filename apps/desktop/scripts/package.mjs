@@ -118,15 +118,19 @@ if (pnpmEntrypoint === undefined || pnpmEntrypoint === '') {
 }
 
 await rm(stageDir, { recursive: true, force: true })
-const deployed = spawnSync(process.execPath, [
+const useHoistedInstallerPayload = process.platform === 'win32'
+  && process.env.DSH_DESKTOP_BUILD_INSTALLER === '1'
+const deployArgs = [
   pnpmEntrypoint,
+  ...(useHoistedInstallerPayload ? ['--config.node-linker=hoisted'] : []),
   '--filter',
   '@deepseek-ai/dsh-desktop',
   'deploy',
   '--prod',
   '--legacy',
   stageDir,
-], { cwd: repoRoot, stdio: 'inherit' })
+]
+const deployed = spawnSync(process.execPath, deployArgs, { cwd: repoRoot, stdio: 'inherit' })
 if (deployed.status !== 0) throw new Error(`desktop package: pnpm deploy failed with ${String(deployed.status)}`)
 
 await assertRequiredPeersResolvable()
@@ -148,9 +152,9 @@ const outputs = await packager({
   overwrite: true,
   prune: false,
   asar: false,
-  // The deployed pnpm graph contains legitimate peer cycles. Dereferencing
-  // them turns the graph into recursive directory copies; retain its relative
-  // links inside the unpacked application instead.
+  // The default isolated pnpm graph contains legitimate peer cycles.
+  // Windows installers use a hoisted graph above so archivers see no cyclic
+  // directory links; other builds retain relative links in the unpacked app.
   derefSymlinks: false,
   electronVersion,
   platform: process.platform,
