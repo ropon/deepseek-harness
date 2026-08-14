@@ -34,6 +34,16 @@ pnpm run build
 pnpm dsh web
 ```
 
+### Run the desktop preview
+
+The Electron desktop application manages the same local Web UI and Harness process behind an application window. It bundles the ClawRouters plugin; on first launch, enter one ClawRouters API key to enable chat, image generation, video generation, vision input, and Web search:
+
+```sh
+pnpm desktop:dev
+```
+
+Build an application for the current operating system and CPU architecture with `pnpm desktop:package`. Generated tool images render inline in both the conversation tool card and its details. See the [desktop application guide](apps/desktop/README.md) for packaging limits and data locations.
+
 ## Community and support
 
 - Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).

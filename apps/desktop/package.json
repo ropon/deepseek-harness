@@ -1,0 +1,56 @@
+{
+  "name": "@deepseek-ai/dsh-desktop",
+  "productName": "DeepSeek Harness",
+  "description": "Electron desktop application for DeepSeek Harness",
+  "version": "0.1.0-rc.5",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "apps/desktop"
+  },
+  "type": "module",
+  "main": "lib/main.js",
+  "files": [
+    "lib/*.js"
+  ],
+  "scripts": {
+    "dev": "pnpm --dir ../.. run build && electron .",
+    "package": "pnpm --dir ../.. run build && node scripts/package.mjs",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@deepseek-ai/cosmokit": "workspace:^",
+    "@deepseek-ai/cordis-plugin-group": "workspace:^",
+    "@deepseek-ai/dsh": "workspace:^",
+    "@deepseek-ai/dsh-anonymous-user-id": "workspace:^",
+    "@deepseek-ai/dsh-atomic-write": "workspace:^",
+    "@deepseek-ai/dsh-bash-local": "workspace:^",
+    "@deepseek-ai/dsh-code-runtime": "workspace:^",
+    "@deepseek-ai/dsh-compaction": "workspace:^",
+    "@deepseek-ai/dsh-fs": "workspace:^",
+    "@deepseek-ai/dsh-invariants": "workspace:^",
+    "@deepseek-ai/dsh-output-retention": "workspace:^",
+    "@deepseek-ai/dsh-sandbox": "workspace:^",
+    "@deepseek-ai/dsh-scope": "workspace:^",
+    "@deepseek-ai/dsh-session-telemetry": "workspace:^",
+    "@deepseek-ai/dsh-session-title-llm": "workspace:^",
+    "@deepseek-ai/dsh-shell": "workspace:^",
+    "@deepseek-ai/dsh-spill": "workspace:^",
+    "@deepseek-ai/dsh-subagent-in-process-driver": "workspace:^",
+    "@deepseek-ai/dsh-subprocess": "workspace:^",
+    "@deepseek-ai/dsh-timeout": "workspace:^",
+    "@deepseek-ai/dsh-workflow": "workspace:^",
+    "@standard-schema/spec": "^1.1.0",
+    "dsh-plugin-clawrouters": "github:ropon/dsh-plugin-clawrouters#v0.1.1"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "@electron/rebuild": "4.2.0",
+    "electron": "43.4.0",
+    "playwright": "^1.49.0"
+  }
+}
