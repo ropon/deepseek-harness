@@ -64,6 +64,10 @@ export async function buildDesktopInstaller({ appDir, prepackaged }) {
       nsis: {
         oneClick: false,
         perMachine: false,
+        // The unpacked pnpm deployment contains a large dependency graph.
+        // ZIP avoids electron-builder's fixed ultra-compression 7z path while
+        // preserving the same installed payload and assisted installer UX.
+        useZip: true,
         allowToChangeInstallationDirectory: true,
         differentialPackage: false,
         createDesktopShortcut: true,
