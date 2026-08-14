@@ -1,0 +1,132 @@
+name: DSH Desktop
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - desktop-v*
+
+concurrency:
+  group: dsh-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24'
+  DSH_TELEMETRY_DISABLED: '1'
+
+jobs:
+  package:
+    name: ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS arm64
+            os: macos-15
+            arch: arm64
+            platform: darwin
+            asset: DeepSeek-Harness-Desktop-macOS-arm64.zip
+          - label: macOS x64
+            os: macos-15-intel
+            arch: x64
+            platform: darwin
+            asset: DeepSeek-Harness-Desktop-macOS-x64.zip
+          - label: Windows arm64
+            os: windows-11-arm
+            arch: arm64
+            platform: win32
+            asset: DeepSeek-Harness-Desktop-Windows-arm64.zip
+          - label: Windows x64
+            os: windows-2025
+            arch: x64
+            platform: win32
+            asset: DeepSeek-Harness-Desktop-Windows-x64.zip
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Verify native architecture
+        shell: bash
+        run: node -e "if (process.arch !== '${{ matrix.arch }}') throw new Error('expected ${{ matrix.arch }}, got ' + process.arch)"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Package desktop application
+        run: pnpm desktop:package
+
+      - name: Test packaged macOS application
+        if: matrix.platform == 'darwin'
+        shell: bash
+        run: |
+          export DSH_DESKTOP_PACKAGED_EXECUTABLE="$PWD/apps/desktop/out/DeepSeek Harness-darwin-${{ matrix.arch }}/DeepSeek Harness.app/Contents/MacOS/DeepSeek Harness"
+          pnpm --filter @deepseek-ai/dsh-desktop test:e2e
+
+      - name: Test packaged Windows application
+        if: matrix.platform == 'win32'
+        shell: pwsh
+        run: |
+          $env:DSH_DESKTOP_PACKAGED_EXECUTABLE = (Resolve-Path "apps/desktop/out/DeepSeek Harness-win32-${{ matrix.arch }}/DeepSeek Harness.exe")
+          pnpm --filter @deepseek-ai/dsh-desktop test:e2e
+
+      - name: Archive macOS application
+        if: matrix.platform == 'darwin'
+        shell: bash
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "apps/desktop/out/DeepSeek Harness-darwin-${{ matrix.arch }}/DeepSeek Harness.app" \
+            "apps/desktop/out/${{ matrix.asset }}"
+
+      - name: Archive Windows application
+        if: matrix.platform == 'win32'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "apps/desktop/out/DeepSeek Harness-win32-${{ matrix.arch }}/*" -DestinationPath "apps/desktop/out/${{ matrix.asset }}" -CompressionLevel Optimal
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-desktop-${{ matrix.platform }}-${{ matrix.arch }}
+          path: apps/desktop/out/${{ matrix.asset }}
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish GitHub release assets
+    if: startsWith(github.ref, 'refs/tags/desktop-v')
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dsh-desktop-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create or update prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* \
+              --prerelease \
+              --generate-notes \
+              --title "DSH Desktop ${GITHUB_REF_NAME#desktop-v}" \
+              --repo "$GITHUB_REPOSITORY"
+          fi

@@ -22,6 +22,8 @@ The current-platform packaging command builds the repository, uses `pnpm deploy 
 
 The application remains unpacked instead of using ASAR because Harness dependencies include native modules and executable helpers that require ordinary filesystem paths. Packager retains the production deployment's pnpm graph without dereferencing legitimate peer cycles, then rewrites staging-absolute links to package-internal relative targets and verifies that every link resolves inside the application. Signing, notarization, installers, and updates remain release-distribution work rather than startup behavior.
 
+The repository CI packages on native GitHub-hosted runners for macOS arm64/x64 and Windows arm64/x64. Each lane smoke-tests the packaged executable and publishes a ZIP artifact; `desktop-v*` tags converge those four artifacts into one GitHub prerelease. The application carries platform-native ICNS/ICO forms of the same desktop whale icon.
+
 ## Alternatives considered
 
 **Implement the reserved IPC carrier first.** The protocol abstraction supports it, but the client-module graph, streaming events, directory picker, and production resource protocol would all enter the first deliverable. Reusing loopback keeps the Web composition and its tests authoritative while product demand is validated; the IPC design remains the target for a deeper desktop integration.

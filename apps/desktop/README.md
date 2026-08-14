@@ -29,6 +29,10 @@ pnpm desktop:package
 
 The packaging script creates an isolated production deployment, verifies that every required Harness peer provider is resolvable, rebuilds native dependencies for Electron's ABI, and writes the application under `apps/desktop/out/`. It rewrites pnpm links to package-relative targets and rejects any link that escapes the application. The packaged backend runs through Electron's run-as-Node mode with the internal-module access required by Cordis HMR, and stores its Harness home below Electron's per-user application-data directory.
 
+The application icon reuses the official Harness whale mark in a desktop-specific blue gradient container. Source PNG/SVG plus packaged macOS ICNS and Windows ICO assets live in `apps/desktop/assets/`.
+
+GitHub Actions workflow `desktop-release.yml` builds and smoke-tests four native targets: macOS arm64, macOS x64, Windows arm64, and Windows x64. Manual runs retain each ZIP as a workflow artifact; pushing a `desktop-v*` tag also creates or updates the matching prerelease and uploads all four archives.
+
 ## Runtime and security
 
 The renderer has Node integration disabled, context isolation and the Chromium sandbox enabled, denied permission requests, blocked cross-origin navigation, and an explicit response CSP. The script policy permits `unsafe-eval` because the existing trusted same-origin [schema-form client](../../packages/client/schema-form/README.md) revives Host-authored callbacks through `new Function`; the window never loads a remote application origin. HTTP and WebSocket traffic stay on the randomly assigned `127.0.0.1` origin. External HTTP(S) links open in the operating system browser.
@@ -48,6 +52,6 @@ None beyond the existing Web profile; the shell adds no prompt section or tool s
 ## Known Limitations and Deferred Work
 
 - The MVP reuses the loopback HTTP/WebSocket carrier instead of the architecture's reserved Electron IPC carrier.
-- Packages are unsigned, not notarized, current-platform only, and have no automatic updater.
+- Packages are unsigned and not notarized, and have no automatic updater. CI produces four native OS/CPU archives, but signing remains separate release work.
 - The production application is unpacked rather than ASAR-archived so native modules and executable helpers retain ordinary filesystem paths. Packaging keeps the deployed pnpm graph as package-internal relative symbolic links instead of recursively expanding its legitimate peer-dependency cycles.
 - Native Electron dialogs, system credential storage, tray integration, and multi-window behavior remain outside this shell.

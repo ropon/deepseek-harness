@@ -16,6 +16,11 @@ const outDir = join(appDir, 'out')
 const require = createRequire(import.meta.url)
 const electronVersion = require('electron/package.json').version
 const pnpmEntrypoint = process.env.npm_execpath
+const icon = process.platform === 'darwin'
+  ? join(appDir, 'assets', 'icon.icns')
+  : process.platform === 'win32'
+    ? join(appDir, 'assets', 'icon.ico')
+    : join(appDir, 'assets', 'icon.png')
 
 async function collectSymlinks(directory) {
   const links = []
@@ -149,6 +154,7 @@ const outputs = await packager({
   executableName: 'DeepSeek Harness',
   appBundleId: 'ai.deepseek.harness',
   appCategoryType: 'public.app-category.developer-tools',
+  icon,
 })
 
 for (const output of outputs) {

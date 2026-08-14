@@ -14,7 +14,8 @@
   "type": "module",
   "main": "lib/main.js",
   "files": [
-    "lib/*.js"
+    "lib/*.js",
+    "assets/*"
   ],
   "scripts": {
     "dev": "pnpm --dir ../.. run build && electron .",
