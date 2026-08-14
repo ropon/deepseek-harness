@@ -28,22 +28,26 @@ jobs:
             os: macos-15
             arch: arm64
             platform: darwin
-            asset: DSH-Desktop-macOS-arm64.zip
+            installer: DSH-Desktop-macOS-arm64.dmg
+            portable: DSH-Desktop-macOS-arm64.zip
           - label: macOS x64
             os: macos-15-intel
             arch: x64
             platform: darwin
-            asset: DSH-Desktop-macOS-x64.zip
+            installer: DSH-Desktop-macOS-x64.dmg
+            portable: DSH-Desktop-macOS-x64.zip
           - label: Windows arm64
             os: windows-11-arm
             arch: arm64
             platform: win32
-            asset: DSH-Desktop-Windows-arm64.zip
+            installer: DSH-Desktop-Windows-arm64.exe
+            portable: DSH-Desktop-Windows-arm64.zip
           - label: Windows x64
             os: windows-2025
             arch: x64
             platform: win32
-            asset: DSH-Desktop-Windows-x64.zip
+            installer: DSH-Desktop-Windows-x64.exe
+            portable: DSH-Desktop-Windows-x64.zip
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     steps:
@@ -66,6 +70,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Package desktop application
+        env:
+          DSH_DESKTOP_BUILD_INSTALLER: '1'
         run: pnpm desktop:package
 
       - name: Archive macOS application
@@ -74,13 +80,13 @@ jobs:
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
             "apps/desktop/out/DSH Desktop-darwin-${{ matrix.arch }}/DSH Desktop.app" \
-            "apps/desktop/out/${{ matrix.asset }}"
+            "apps/desktop/out/${{ matrix.portable }}"
 
       - name: Archive Windows application
         if: matrix.platform == 'win32'
         shell: pwsh
         run: |
-          Compress-Archive -Path "apps/desktop/out/DSH Desktop-win32-${{ matrix.arch }}/*" -DestinationPath "apps/desktop/out/${{ matrix.asset }}" -CompressionLevel Optimal
+          Compress-Archive -Path "apps/desktop/out/DSH Desktop-win32-${{ matrix.arch }}/*" -DestinationPath "apps/desktop/out/${{ matrix.portable }}" -CompressionLevel Optimal
 
       # pnpm deploy --prod intentionally transitions the workspace modules to
       # production state. Restore test tooling before the packaged-app smoke.
@@ -107,7 +113,9 @@ jobs:
         if: always()
         with:
           name: dsh-desktop-${{ matrix.platform }}-${{ matrix.arch }}
-          path: apps/desktop/out/${{ matrix.asset }}
+          path: |
+            apps/desktop/installers/${{ matrix.installer }}
+            apps/desktop/out/${{ matrix.portable }}
           if-no-files-found: error
           retention-days: 14
 

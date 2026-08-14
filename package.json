@@ -24,6 +24,7 @@
     "build:web": "pnpm --filter @deepseek-ai/dsh-web-frontend run build",
     "desktop:dev": "pnpm --filter @deepseek-ai/dsh-desktop run dev",
     "desktop:package": "pnpm --filter @deepseek-ai/dsh-desktop run package",
+    "desktop:installer": "pnpm --filter @deepseek-ai/dsh-desktop run package:installer",
     "clean": "tsx scripts/clean.ts",
     "change-scope": "tsx scripts/change-scope.ts",
     "typecheck": "npm run build:lib:host && npm run typecheck:contracts-ready",

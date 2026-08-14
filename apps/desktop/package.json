@@ -22,6 +22,7 @@
   "scripts": {
     "dev": "pnpm --dir ../.. run build && electron .",
     "package": "pnpm --dir ../.. run build && node scripts/package.mjs",
+    "package:installer": "node scripts/package-installer.mjs",
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "license": "MIT",
@@ -54,6 +55,7 @@
     "@electron/packager": "20.3.0",
     "@electron/rebuild": "4.2.0",
     "electron": "43.4.0",
+    "electron-builder": "26.8.1",
     "playwright": "^1.49.0"
   }
 }

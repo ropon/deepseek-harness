@@ -746,6 +746,7 @@
         "tests/**/*.spec.ts"
       ],
       "project": [
+        "scripts/**/*.mjs",
         "src/**/*.ts",
         "tests/**/*.ts"
       ],

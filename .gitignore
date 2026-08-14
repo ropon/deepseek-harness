@@ -40,3 +40,4 @@ worktrees/
 .typert-*/
 apps/desktop/.package-stage/
 apps/desktop/out/
+apps/desktop/installers/

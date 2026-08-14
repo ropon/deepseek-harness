@@ -44,7 +44,7 @@ Electron 桌面应用会在应用窗口背后管理同一个本地 Web UI 和 Ha
 pnpm desktop:dev
 ```
 
-运行 `pnpm desktop:package` 可为当前操作系统与 CPU 架构构建应用。工具生成的图片会在会话卡片和详情中直接渲染。打包限制与数据位置参见[桌面应用指南](apps/desktop/README.md)。
+运行 `pnpm desktop:installer` 可为当前操作系统与 CPU 架构构建面向用户的安装器（macOS 为 DMG，Windows 为引导式 NSIS EXE）。`pnpm desktop:package` 仍用于生成未归档的开发构建。工具生成的图片会在会话卡片和详情中直接渲染。打包限制与数据位置参见[桌面应用指南](apps/desktop/README.md)。
 
 ## 社区与支持
 

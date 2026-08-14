@@ -44,7 +44,7 @@ The Electron desktop application manages the same local Web UI and Harness proce
 pnpm desktop:dev
 ```
 
-Build an application for the current operating system and CPU architecture with `pnpm desktop:package`. Generated tool images render inline in both the conversation tool card and its details. See the [desktop application guide](apps/desktop/README.md) for packaging limits and data locations.
+Build a consumer installer for the current operating system and CPU architecture with `pnpm desktop:installer` (DMG on macOS, assisted NSIS EXE on Windows). `pnpm desktop:package` remains the unpacked development build. Generated tool images render inline in both the conversation tool card and its details. See the [desktop application guide](apps/desktop/README.md) for packaging limits and data locations.
 
 ## Community and support
 

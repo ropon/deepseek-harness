@@ -29,11 +29,19 @@ Build an application for the current operating system and CPU architecture:
 pnpm desktop:package
 ```
 
+This writes the unpacked application under `apps/desktop/out/`. For a consumer installer, run:
+
+```sh
+pnpm desktop:installer
+```
+
+The installer command builds the exact same unpacked application, then wraps that tested directory with Electron Builder: a drag-to-Applications DMG on macOS or an assisted per-user NSIS EXE on Windows. Installer artifacts are written under `apps/desktop/installers/`; no second application repack changes the dependency graph between the smoke-tested executable and the installer payload.
+
 The packaging script creates an isolated production deployment, verifies that every required Harness peer provider is resolvable, uses bundled platform prebuilds where available, rebuilds the remaining native dependencies for Electron's ABI, and writes the application under `apps/desktop/out/`. It rewrites pnpm links to package-relative targets and rejects any link that escapes the application. The packaged backend runs through Electron's run-as-Node mode with the internal-module access required by Cordis HMR, and stores its Harness home below Electron's per-user application-data directory.
 
 The application uses an independent community-project icon: an original modular whale whose three plugin nodes route into a central Harness core. It evokes the project's agent-harness purpose without reproducing DeepSeek's official whale silhouette or mark. Source PNG artwork plus packaged macOS ICNS and Windows ICO assets live in `apps/desktop/assets/`.
 
-GitHub Actions workflow `desktop-release.yml` builds and smoke-tests four native targets: macOS arm64, macOS x64, Windows arm64, and Windows x64. Manual runs retain each ZIP as a workflow artifact; pushing a `desktop-v*` tag also creates or updates the matching prerelease and uploads all four archives.
+GitHub Actions workflow `desktop-release.yml` builds and smoke-tests four native targets: macOS arm64, macOS x64, Windows arm64, and Windows x64. Each lane retains the consumer installer (DMG or NSIS EXE) and a portable ZIP. Pushing a `desktop-v*` tag creates or updates the matching prerelease and uploads all eight artifacts.
 
 ## Runtime and security
 
@@ -54,6 +62,6 @@ None beyond the existing Web profile; the shell adds no prompt section or tool s
 ## Known Limitations and Deferred Work
 
 - The MVP reuses the loopback HTTP/WebSocket carrier instead of the architecture's reserved Electron IPC carrier.
-- Packages are unsigned and not notarized, and have no automatic updater. CI produces four native OS/CPU archives, but signing remains separate release work.
+- Installers and portable packages are unsigned and not notarized, and have no automatic updater. CI produces native DMG/NSIS installers plus ZIP fallbacks for four OS/CPU targets; signing remains separate release work.
 - The production application is unpacked rather than ASAR-archived so native modules and executable helpers retain ordinary filesystem paths. Packaging keeps the deployed pnpm graph as package-internal relative symbolic links instead of recursively expanding its legitimate peer-dependency cycles.
 - Native Electron dialogs, system credential storage, tray integration, and multi-window behavior remain outside this shell.

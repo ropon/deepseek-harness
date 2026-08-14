@@ -29,11 +29,19 @@ pnpm desktop:dev
 pnpm desktop:package
 ```
 
+该命令会把未归档应用写入 `apps/desktop/out/`。如需面向用户的安装器，运行：
+
+```sh
+pnpm desktop:installer
+```
+
+安装器命令会构建完全相同的未归档应用，再用 Electron Builder 包装该已测试目录：macOS 生成拖入 Applications 的 DMG，Windows 生成按用户安装的引导式 NSIS EXE。安装器写入 `apps/desktop/installers/`；不会进行第二次应用重打包，因此冒烟测试的可执行文件与安装器负载之间的依赖图不会变化。
+
 打包脚本会创建隔离的生产部署，验证每个必需的 Harness peer provider 均可解析，在可用时使用依赖自带的平台预编译件，并为 Electron ABI 重建其余原生依赖，最后将应用写入 `apps/desktop/out/`。它会把 pnpm 链接改写为包内相对目标，并拒绝任何逃逸应用包的链接。打包后的后端通过 Electron 的 run-as-Node 模式运行，同时启用 Cordis HMR 所需的内部模块访问，并将 Harness home 存储在 Electron 的用户级应用数据目录下。
 
 应用使用独立的社区项目图标：一条原创模块化鲸鱼，三个插件节点路由到中心 Harness 核心。它会让人联想到项目的 agent harness 用途，但不复制 DeepSeek 官方鲸鱼轮廓或标识。源 PNG 图稿以及打包使用的 macOS ICNS、Windows ICO 都位于 `apps/desktop/assets/`。
 
-GitHub Actions 的 `desktop-release.yml` 会原生构建并冒烟测试四个目标：macOS arm64、macOS x64、Windows arm64 和 Windows x64。手动运行会把各 ZIP 保留为 workflow artifact；推送 `desktop-v*` 标签还会创建或更新同名 prerelease，并上传四个压缩包。
+GitHub Actions 的 `desktop-release.yml` 会原生构建并冒烟测试四个目标：macOS arm64、macOS x64、Windows arm64 和 Windows x64。每条 lane 会保留面向用户的安装器（DMG 或 NSIS EXE）和一个便携 ZIP。推送 `desktop-v*` 标签会创建或更新同名 prerelease，并上传全部八个产物。
 
 ## 运行时与安全
 
@@ -54,6 +62,6 @@ ClawRouters 提供对话／视觉路由，以及生图、生视频和联网搜�
 ## 已知限制与后续工作
 
 - 该 MVP 复用 loopback HTTP／WebSocket 载体，而不是架构预留的 Electron IPC 载体。
-- 构建包未签名、未公证，并且没有自动更新器。CI 会生成四种原生操作系统／CPU 压缩包，但签名仍属于独立的发布工作。
+- 安装器和便携包均未签名、未公证，并且没有自动更新器。CI 会为四种操作系统／CPU 目标生成原生 DMG／NSIS 安装器以及 ZIP 备用包，但签名仍属于独立的发布工作。
 - 生产应用保持解包状态，不使用 ASAR 归档，使原生模块与可执行 helper 保留普通文件系统路径。打包会把 pnpm 部署依赖图保留为包内相对符号链接，而不是递归展开其中合法的对等依赖循环。
 - 原生 Electron 对话框、系统凭证存储、托盘集成和多窗口行为不属于此壳的范围。

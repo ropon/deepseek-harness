@@ -7,6 +7,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { packager } from '@electron/packager'
 import { rebuild } from '@electron/rebuild'
+import { buildDesktopInstaller } from './installer.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const appDir = resolve(here, '..')
@@ -166,4 +167,8 @@ for (const output of outputs) {
   await lstat(packagedAppDir)
   await makeDependencyLinksPortable(packagedAppDir)
   console.log(`desktop package: ${output}`)
+  if (process.env.DSH_DESKTOP_BUILD_INSTALLER === '1') {
+    const artifacts = await buildDesktopInstaller({ appDir, prepackaged: output })
+    for (const artifact of artifacts) console.log(`desktop installer: ${artifact}`)
+  }
 }
