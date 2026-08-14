@@ -1,18 +1,33 @@
 /** Card-aware output body for the selected Tool call in details. */
 import { DiffBlock, ReadBlock, SearchBlock, TerminalBlock, WebBlock } from '@deepseek-ai/dsh-client-ui-primitives'
+import { ImageGallery, type MessageImageLabels } from '@deepseek-ai/dsh-client-ui-attachment'
 import type { ToolDetailsProps } from '../contract/slots.ts'
 import { diffCardModel } from './models/diff-card-model.ts'
 import { readCardModel } from './models/read-card-model.ts'
 import { searchCardModel } from './models/search-card-model.ts'
 import { terminalBlockLabels, terminalCardModel } from './models/terminal-card-model.ts'
 import { resultText } from './models/tool-call-model.ts'
+import { resultImages } from './models/tool-call-model.ts'
 import { webCardModel } from './models/web-card-model.ts'
 import css from './ToolDetails.module.css'
+
+/** Resolve attachment labels from the conversation namespace this slot already owns. */
+function imageLabels(t: ToolDetailsProps['t']): MessageImageLabels {
+  return {
+    image: t('image.label'),
+    open: t('image.openOriginal'),
+    openNamed: label => t('image.openOriginalLabel', { label }),
+    loading: t('image.loading'),
+    loadFailed: t('image.loadFailed'),
+    lightbox: { dialog: t('image.preview'), close: t('image.closePreview') },
+  }
+}
 
 /** Pure details-body inputs; framework session seats stay at the slot boundary. */
 interface ToolDetailsContentProps {
   block: ToolDetailsProps['block']
   cwd?: ToolDetailsProps['cwd']
+  loadImage: ToolDetailsProps['loadImage']
   t: ToolDetailsProps['t']
 }
 
@@ -22,7 +37,7 @@ interface ToolDetailsContentProps {
  * @param props - selected call slice, workspace root, and locale seat.
  * @returns the details output body.
  */
-export function ToolDetails({ block, cwd, t }: ToolDetailsContentProps) {
+export function ToolDetails({ block, cwd, loadImage, t }: ToolDetailsContentProps) {
   const terminal = terminalCardModel(block, cwd)
   if (terminal !== null) {
     return (
@@ -58,9 +73,16 @@ export function ToolDetails({ block, cwd, t }: ToolDetailsContentProps) {
     )
   }
   if (!('kind' in block)) return <div className={css.empty}>{t('details.running')}</div>
+  const images = resultImages(block)
+  const body = resultText(block)
   return (
-    <pre className={css.code} data-error={block.isError || undefined}>
-      {resultText(block)}
-    </pre>
+    <>
+      {images.length > 0 && (
+        <div className={css.images}>
+          <ImageGallery images={images} load={loadImage} align="start" labels={imageLabels(t)} />
+        </div>
+      )}
+      {body !== '' && <pre className={css.code} data-error={block.isError || undefined}>{body}</pre>}
+    </>
   )
 }

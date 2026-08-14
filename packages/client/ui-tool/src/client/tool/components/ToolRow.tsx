@@ -24,12 +24,26 @@ import {
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { WebBlockProps } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
+import { ImageGallery, type ImageLoader, type MessageImageLabels } from '@deepseek-ai/dsh-client-ui-attachment'
+import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import { CHAT_DIFF_MAX_LINES, type DiffCardModel } from '../models/diff-card-model.ts'
 import { CHAT_READ_MAX_LINES, type ReadCardModel } from '../models/read-card-model.ts'
 import { CHAT_SEARCH_MAX_LINES, type SearchCardModel } from '../models/search-card-model.ts'
 import { terminalBlockLabels, type TerminalCardModel } from '../models/terminal-card-model.ts'
 import type { ToolRowState, ToolRowVariant } from '../models/tool-call-model.ts'
 import css from './ToolRow.module.css'
+
+/** Resolve attachment labels from the conversation namespace this slot already owns. */
+function imageLabels(t: TranslateNS<'conversation'>): MessageImageLabels {
+  return {
+    image: t('image.label'),
+    open: t('image.openOriginal'),
+    openNamed: label => t('image.openOriginalLabel', { label }),
+    loading: t('image.loading'),
+    loadFailed: t('image.loadFailed'),
+    lightbox: { dialog: t('image.preview'), close: t('image.closePreview') },
+  }
+}
 
 export interface ToolRowProps {
   /** The render site's conversation locale seat (terminal/code body copy). */
@@ -53,6 +67,10 @@ export interface ToolRowProps {
   body: string | null
   /** Flattened result text for the expanded Output section; null/absent = no output section. */
   output?: string | null | undefined
+  /** Canonical images returned by the Tool, displayed before textual output. */
+  images?: readonly { attachment: ImageAttachmentRef }[] | undefined
+  /** Session-authorized image loader. */
+  loadImage?: ImageLoader | undefined
   /** Error first line shown as the collapsed summary on an error row; null/absent = keep `summary`. */
   errorSummary?: string | null | undefined
   /**
@@ -135,6 +153,8 @@ export function ToolRow({
   summarySuffix,
   body,
   output,
+  images,
+  loadImage,
   errorSummary,
   terminal,
   diff,
@@ -153,11 +173,12 @@ export function ToolRow({
   const searchBody = search ?? null
   const webBody = web ?? null
   const outputText = output ?? null
+  const outputImages = images ?? []
   // A card replaces the text body; a call carries at most one card kind, so the
   // card props are mutually exclusive. Any of them, or a text body/output,
   // makes the row expandable.
   const card = terminalBody ?? diffBody ?? readBody ?? searchBody ?? webBody
-  const expandable = body !== null || outputText !== null || card !== null
+  const expandable = body !== null || outputText !== null || outputImages.length > 0 || card !== null
   const open = expanded && expandable
   // The run-state label AT needs: the StateDot and the running sweep are both
   // aria-hidden / colour-only, so a stopped or running row is otherwise silent.
@@ -286,6 +307,11 @@ export function ToolRow({
                                 </span>
                               </div>
                             )}
+                          </div>
+                        )}
+                        {outputImages.length > 0 && loadImage !== undefined && (
+                          <div className={css.imageOutput}>
+                            <ImageGallery images={outputImages} load={loadImage} align="start" labels={imageLabels(t)} />
                           </div>
                         )}
                       </>

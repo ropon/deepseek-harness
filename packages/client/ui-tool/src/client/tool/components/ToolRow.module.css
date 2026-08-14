@@ -136,6 +136,10 @@
   flex-direction: column;
 }
 
+.imageOutput {
+  margin: 6px 0 2px 22px;
+}
+
 /* Hover-revealed jump to the trajectory record: a small pill in real flow
    under the expanded body's bottom-left corner (it reserves its line, so
    revealing never shifts layout); revealed by hovering anywhere on the tool

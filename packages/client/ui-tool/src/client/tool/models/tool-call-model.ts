@@ -10,6 +10,7 @@
 // contract only forwards it (type-definition authority stays with the layer
 // that produces the values).
 import type { ToolCallBlock, ToolResultNode } from '@deepseek-ai/dsh-client-runtime/client'
+import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 
 export type { ToolCallBlock } from '@deepseek-ai/dsh-client-runtime/client'
 
@@ -108,12 +109,18 @@ export function resultText(node: ToolResultNode): string {
   const parts: string[] = []
   for (const block of node.content) {
     if (block.type === 'text') parts.push(block.text)
-    else parts.push(JSON.stringify(block, null, 2))
+    else if (block.type !== 'image') parts.push(JSON.stringify(block, null, 2))
   }
   if (parts.length === 0 && node.error !== undefined) {
     parts.push(`${node.error.name}: ${node.error.code}`)
   }
   return parts.join('\n')
+}
+
+/** Extract canonical image references from a settled Tool result. */
+export function resultImages(node: ToolCallBlock): { attachment: ImageAttachmentRef }[] {
+  if (!('kind' in node)) return []
+  return node.content.flatMap(block => block.type === 'image' ? [{ attachment: block.attachment }] : [])
 }
 
 function parseArgs(argsRaw: string): unknown {

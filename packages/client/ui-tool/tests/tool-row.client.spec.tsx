@@ -6,7 +6,7 @@ import type { RunningToolCall, ToolResultNode } from '@deepseek-ai/dsh-client-ru
 import { makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
 import { zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/zh.ts'
 import { resolveWorkspacePath } from '@deepseek-ai/dsh-client-runtime/client'
-import { classifyTool, resultText, toolRowModel } from '../src/client/tool/models/tool-call-model.ts'
+import { classifyTool, resultImages, resultText, toolRowModel } from '../src/client/tool/models/tool-call-model.ts'
 import { ToolRow } from '../src/client/tool/components/ToolRow.tsx'
 import { GenericToolCard, type GenericToolCardProps } from '../src/client/tool/toolviews/GenericToolCard.tsx'
 import { zh } from '@deepseek-ai/dsh-client-ui-conversation/src/client/locales.ts'
@@ -149,10 +149,15 @@ describe('tool-call-model', () => {
       .toBe('{\n  "code": ""\n}')
   })
 
-  it('resultText flattens text blocks verbatim, other shapes as JSON, empty error content to name: code', () => {
+  it('separates image blocks from flattened text and preserves other shapes as JSON', () => {
     expect(resultText(result({ content: [{ type: 'text', text: 'a\nb' }] }))).toBe('a\nb')
-    expect(resultText(result({ content: [{ type: 'text', text: 'a' }, { type: 'image', data: 'x' } as never] })))
-      .toBe(`a\n${JSON.stringify({ type: 'image', data: 'x' }, null, 2)}`)
+    const attachment = {
+      attachmentId: 'sha256:test', mediaType: 'image/png', bytes: 1, width: 1, height: 1, name: 'result.png',
+    } as never
+    const withImage = result({ content: [{ type: 'text', text: 'a' }, { type: 'image', attachment }] })
+    expect(resultText(withImage)).toBe('a')
+    expect(resultImages(withImage)).toEqual([{ attachment }])
+    expect(resultImages(running())).toEqual([])
     expect(resultText(result({ content: [], isError: true, error: { name: 'ToolError', code: 'denied' } })))
       .toBe('ToolError: denied')
     expect(resultText(result({ content: [] }))).toBe('')
@@ -376,7 +381,22 @@ describe('ToolRow', () => {
 
 describe('GenericToolCard', () => {
   const props = (toolName: string, block: RunningToolCall | ToolResultNode): GenericToolCardProps => ({
-    callId: 'c1', toolName, block, openFile: vi.fn(), t,
+    callId: 'c1', toolName, block, openFile: vi.fn(), loadImage: vi.fn(() => Promise.resolve('blob:tool-image')), t,
+  })
+
+  it('renders a generated image through the authorized loader instead of JSON', () => {
+    const attachment = {
+      attachmentId: 'sha256:generated', mediaType: 'image/png', bytes: 4, width: 32, height: 24, name: 'generated.png',
+    } as never
+    const card = props('clawrouters_image_generate', result({
+      call: { name: 'clawrouters_image_generate', argsRaw: '{"prompt":"cat"}' },
+      content: [{ type: 'text', text: 'generated' }, { type: 'image', attachment }],
+    }))
+    const view = render(<GenericToolCard {...card} />)
+    fireEvent.click(view.getByRole('button', { name: /clawrouters_image_generate/ }))
+    expect(view.getByTitle('查看原图')).toBeTruthy()
+    expect(card.loadImage).toHaveBeenCalledWith(attachment)
+    expect(view.queryByText(/attachmentId/)).toBeNull()
   })
 
   it('renders the classified variant row from the frozen slice', () => {
