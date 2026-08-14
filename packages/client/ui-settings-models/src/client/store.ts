@@ -205,6 +205,25 @@ export function providerUsable(row: ProviderRow): boolean {
   return row.credential?.configured === true
 }
 
+/**
+ * Pick the provider offered by first-run onboarding. ClawRouters is preferred
+ * when its plugin contributes the route; otherwise the stock DeepSeek route
+ * keeps the upstream Web experience unchanged.
+ */
+export function onboardingTarget(state: ModelsSettingsState): ProviderRow | undefined {
+  const priorities = ['clawrouters', 'deepseek-official']
+  for (const provider of priorities) {
+    const row = state.rows.find(candidate => candidate.entry.provider === provider
+      && candidate.entry.settingsNs.length > 0
+      && state.namespaces.has(candidate.entry.settingsNs)
+      && candidate.entry.active)
+    if (row !== undefined) return row
+  }
+  return state.rows.find(candidate => priorities.includes(candidate.entry.provider)
+    && candidate.entry.settingsNs.length > 0
+    && state.namespaces.has(candidate.entry.settingsNs))
+}
+
 /** First-run onboarding readiness derived only from the shared Models join. */
 export type OnboardingReadiness =
   | { kind: 'loading' }
@@ -242,10 +261,7 @@ export function onboardingReadiness(state: ModelsSettingsState): OnboardingReadi
     }
   }
   if (state.rows.some(providerUsable)) return { kind: 'provider-ready' }
-  const row = state.rows.find(candidate =>
-    candidate.entry.provider === 'deepseek-official'
-    && candidate.entry.settingsNs === 'llm-deepseek'
-    && candidate.entry.settingsPath.length === 0)
+  const row = onboardingTarget(state)
   if (row === undefined) return { kind: 'adapter-absent' }
   if (!row.entry.active) {
     return {
