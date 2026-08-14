@@ -2,6 +2,8 @@
 
 [English](README.md) | 中文
 
+> **社区 Fork：**本仓库中的 DSH Desktop 安装包是由 [ropon](https://github.com/ropon) 维护的非官方社区发行版，与 DeepSeek 无隶属关系，也未获得其背书。
+
 DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的开源 agent harness（智能体框架）。
 
 它采用**一切皆插件**的架构，并由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper)。

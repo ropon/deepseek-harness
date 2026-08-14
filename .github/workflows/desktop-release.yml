@@ -28,22 +28,22 @@ jobs:
             os: macos-15
             arch: arm64
             platform: darwin
-            asset: DeepSeek-Harness-Desktop-macOS-arm64.zip
+            asset: DSH-Desktop-macOS-arm64.zip
           - label: macOS x64
             os: macos-15-intel
             arch: x64
             platform: darwin
-            asset: DeepSeek-Harness-Desktop-macOS-x64.zip
+            asset: DSH-Desktop-macOS-x64.zip
           - label: Windows arm64
             os: windows-11-arm
             arch: arm64
             platform: win32
-            asset: DeepSeek-Harness-Desktop-Windows-arm64.zip
+            asset: DSH-Desktop-Windows-arm64.zip
           - label: Windows x64
             os: windows-2025
             arch: x64
             platform: win32
-            asset: DeepSeek-Harness-Desktop-Windows-x64.zip
+            asset: DSH-Desktop-Windows-x64.zip
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     steps:
@@ -68,35 +68,43 @@ jobs:
       - name: Package desktop application
         run: pnpm desktop:package
 
-      - name: Test packaged macOS application
-        if: matrix.platform == 'darwin'
-        shell: bash
-        run: |
-          export DSH_DESKTOP_PACKAGED_EXECUTABLE="$PWD/apps/desktop/out/DeepSeek Harness-darwin-${{ matrix.arch }}/DeepSeek Harness.app/Contents/MacOS/DeepSeek Harness"
-          pnpm --filter @deepseek-ai/dsh-desktop test:e2e
-
-      - name: Test packaged Windows application
-        if: matrix.platform == 'win32'
-        shell: pwsh
-        run: |
-          $env:DSH_DESKTOP_PACKAGED_EXECUTABLE = (Resolve-Path "apps/desktop/out/DeepSeek Harness-win32-${{ matrix.arch }}/DeepSeek Harness.exe")
-          pnpm --filter @deepseek-ai/dsh-desktop test:e2e
-
       - name: Archive macOS application
         if: matrix.platform == 'darwin'
         shell: bash
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
-            "apps/desktop/out/DeepSeek Harness-darwin-${{ matrix.arch }}/DeepSeek Harness.app" \
+            "apps/desktop/out/DSH Desktop-darwin-${{ matrix.arch }}/DSH Desktop.app" \
             "apps/desktop/out/${{ matrix.asset }}"
 
       - name: Archive Windows application
         if: matrix.platform == 'win32'
         shell: pwsh
         run: |
-          Compress-Archive -Path "apps/desktop/out/DeepSeek Harness-win32-${{ matrix.arch }}/*" -DestinationPath "apps/desktop/out/${{ matrix.asset }}" -CompressionLevel Optimal
+          Compress-Archive -Path "apps/desktop/out/DSH Desktop-win32-${{ matrix.arch }}/*" -DestinationPath "apps/desktop/out/${{ matrix.asset }}" -CompressionLevel Optimal
+
+      # pnpm deploy --prod intentionally transitions the workspace modules to
+      # production state. Restore test tooling before the packaged-app smoke.
+      - name: Restore development dependencies
+        env:
+          CI: 'true'
+        run: pnpm install --frozen-lockfile --prod=false
+
+      - name: Test packaged macOS application
+        if: matrix.platform == 'darwin'
+        shell: bash
+        run: |
+          export DSH_DESKTOP_PACKAGED_EXECUTABLE="$PWD/apps/desktop/out/DSH Desktop-darwin-${{ matrix.arch }}/DSH Desktop.app/Contents/MacOS/DSH Desktop"
+          pnpm --filter @deepseek-ai/dsh-desktop test:e2e
+
+      - name: Test packaged Windows application
+        if: matrix.platform == 'win32'
+        shell: pwsh
+        run: |
+          $env:DSH_DESKTOP_PACKAGED_EXECUTABLE = (Resolve-Path "apps/desktop/out/DSH Desktop-win32-${{ matrix.arch }}/DSH Desktop.exe")
+          pnpm --filter @deepseek-ai/dsh-desktop test:e2e
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: dsh-desktop-${{ matrix.platform }}-${{ matrix.arch }}
           path: apps/desktop/out/${{ matrix.asset }}

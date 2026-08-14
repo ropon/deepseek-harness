@@ -22,7 +22,7 @@ renderer 仍是浏览器客户端：关闭 Node 集成，启用上下文隔离�
 
 应用保持解包状态，不使用 ASAR，因为 Harness 依赖包含需要普通文件系统路径的原生模块和可执行 helper。Packager 会在不展开合法 peer 循环的前提下保留生产部署的 pnpm 依赖图，再把 staging 绝对链接改写为包内相对目标，并验证每个链接都在应用内解析。签名、公证、安装器和更新属于发布分发工作，而不是启动行为。
 
-仓库 CI 会在 GitHub 原生托管 runner 上分别打包 macOS arm64／x64 与 Windows arm64／x64。每条 lane 都会冒烟测试打包后的可执行文件并发布 ZIP artifact；`desktop-v*` 标签会把这四个 artifact 汇聚到同一个 GitHub prerelease。应用会携带同一枚桌面鲸鱼图标的原生 ICNS／ICO 版本。
+仓库 CI 会在 GitHub 原生托管 runner 上分别打包 macOS arm64／x64 与 Windows arm64／x64。每条 lane 都会冒烟测试打包后的可执行文件并发布 ZIP artifact；`desktop-v*` 标签会把这四个 artifact 汇聚到同一个 GitHub prerelease。应用会携带原创模块化鲸鱼图标的原生 ICNS／ICO 版本，该图标会让人联想到 Harness 用途，但不复制 DeepSeek 官方标识。
 
 ## Alternatives considered
 

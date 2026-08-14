@@ -1,4 +1,4 @@
-/** Electron application shell for the local DeepSeek Harness Web UI. */
+/** DSH Desktop community shell for the local DeepSeek Harness Web UI. */
 
 /* v8 ignore file -- the packaged desktop smoke owns Electron lifecycle behavior. */
 
@@ -91,7 +91,7 @@ function createMainWindow(url: URL): BrowserWindow {
     minHeight: 640,
     show: false,
     backgroundColor: '#111111',
-    title: 'DeepSeek Harness',
+    title: 'DSH Desktop',
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -129,7 +129,7 @@ async function showStartupFailure(error: unknown): Promise<void> {
   const logPath = join(app.getPath('logs'), 'backend.log')
   await dialog.showMessageBox({
     type: 'error',
-    title: 'DeepSeek Harness failed to start',
+    title: 'DSH Desktop failed to start',
     message: 'The local Harness backend could not be started.',
     detail: `${error instanceof Error ? error.message : String(error)}\n\nBackend log: ${logPath}`,
     buttons: ['Quit'],
@@ -161,7 +161,7 @@ async function start(): Promise<void> {
     if (quitting) return
     const options: MessageBoxOptions = {
       type: 'error',
-      title: 'DeepSeek Harness stopped',
+      title: 'DSH Desktop stopped',
       message: 'The local Harness backend exited unexpectedly.',
       detail: `code=${String(code)}, signal=${String(signal)}\n\nBackend log: ${join(app.getPath('logs'), 'backend.log')}`,
       buttons: ['Quit'],

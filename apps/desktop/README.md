@@ -1,8 +1,8 @@
-# @deepseek-ai/dsh-desktop
+# DSH Desktop
 
 English | [中文](README.zh.md)
 
-The Electron desktop application is a local shell around the shipped `dsh web` composition. It starts the Harness backend on an operating-system-assigned loopback port, waits for the CLI's `dsh web:` readiness line, and then reveals a sandboxed application window. Closing the application sends the backend `SIGTERM`, waits five seconds for Harness disposal, and terminates a child that does not settle.
+DSH Desktop is an unofficial community distribution and is not affiliated with or endorsed by DeepSeek. The Electron application is a local shell around the shipped `dsh web` composition. It starts the Harness backend on an operating-system-assigned loopback port, waits for the CLI's `dsh web:` readiness line, and then reveals a sandboxed application window. Closing the application sends the backend `SIGTERM`, waits five seconds for Harness disposal, and terminates a child that does not settle.
 
 ## Run from a checkout
 
@@ -17,6 +17,8 @@ The command builds the repository before launching Electron. Development uses th
 
 The desktop composition bundles [`dsh-plugin-clawrouters`](https://github.com/ropon/dsh-plugin-clawrouters). On a clean profile, the credential onboarding prefers ClawRouters and stores `CLAWROUTERS_API_KEY` through the existing credential service. The stock DeepSeek prompt remains the fallback only when the plugin route is absent; users can dismiss onboarding and configure any provider later in Models.
 
+The bundled plugin follows the official [plugin basics](https://deepseek-harness.github.io/deepseek-harness/develop/basic/) and [publishing layout](https://deepseek-harness.github.io/deepseek-harness/develop/basic/publish/) conventions: it exports a Cordis `apply` module, declares service injection, ships a Schemastery `Config`, exposes standard rendered tool output, and identifies its bundle patch through `dsh.bundle.patch`. The desktop launcher materializes that patch and passes it as the documented final `--patch` layer, so the plugin remains independently installable instead of becoming hard-coded provider logic.
+
 Set `DSH_DESKTOP_CWD` to choose the backend's initial filesystem location. Without it, the application uses the current user's home directory; workspaces remain explicitly selected in the UI.
 
 ## Package
@@ -27,9 +29,9 @@ Build an application for the current operating system and CPU architecture:
 pnpm desktop:package
 ```
 
-The packaging script creates an isolated production deployment, verifies that every required Harness peer provider is resolvable, rebuilds native dependencies for Electron's ABI, and writes the application under `apps/desktop/out/`. It rewrites pnpm links to package-relative targets and rejects any link that escapes the application. The packaged backend runs through Electron's run-as-Node mode with the internal-module access required by Cordis HMR, and stores its Harness home below Electron's per-user application-data directory.
+The packaging script creates an isolated production deployment, verifies that every required Harness peer provider is resolvable, uses bundled platform prebuilds where available, rebuilds the remaining native dependencies for Electron's ABI, and writes the application under `apps/desktop/out/`. It rewrites pnpm links to package-relative targets and rejects any link that escapes the application. The packaged backend runs through Electron's run-as-Node mode with the internal-module access required by Cordis HMR, and stores its Harness home below Electron's per-user application-data directory.
 
-The application icon reuses the official Harness whale mark in a desktop-specific blue gradient container. Source PNG/SVG plus packaged macOS ICNS and Windows ICO assets live in `apps/desktop/assets/`.
+The application uses an independent community-project icon: an original modular whale whose three plugin nodes route into a central Harness core. It evokes the project's agent-harness purpose without reproducing DeepSeek's official whale silhouette or mark. Source PNG artwork plus packaged macOS ICNS and Windows ICO assets live in `apps/desktop/assets/`.
 
 GitHub Actions workflow `desktop-release.yml` builds and smoke-tests four native targets: macOS arm64, macOS x64, Windows arm64, and Windows x64. Manual runs retain each ZIP as a workflow artifact; pushing a `desktop-v*` tag also creates or updates the matching prerelease and uploads all four archives.
 

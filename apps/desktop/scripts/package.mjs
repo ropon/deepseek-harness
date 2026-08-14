@@ -84,7 +84,7 @@ async function makeDependencyLinksPortable(packagedAppDir) {
 
 function packagedResourcesDirectory(output) {
   if (process.platform === 'darwin') {
-    return join(output, 'DeepSeek Harness.app', 'Contents', 'Resources', 'app')
+    return join(output, 'DSH Desktop.app', 'Contents', 'Resources', 'app')
   }
   return join(output, 'resources', 'app')
 }
@@ -135,6 +135,10 @@ await rebuild({
   electronVersion,
   arch: process.arch,
   force: true,
+  // node-pty 1.1 ships native prebuilds for all four release targets,
+  // including win32-arm64. Recompiling it is unnecessary and currently
+  // fails in the native Windows ARM64 MSBuild environment.
+  ignoreModules: ['node-pty'],
 })
 
 const outputs = await packager({
@@ -150,9 +154,9 @@ const outputs = await packager({
   electronVersion,
   platform: process.platform,
   arch: process.arch,
-  name: 'DeepSeek Harness',
-  executableName: 'DeepSeek Harness',
-  appBundleId: 'ai.deepseek.harness',
+  name: 'DSH Desktop',
+  executableName: 'DSH Desktop',
+  appBundleId: 'io.github.ropon.dsh-desktop',
   appCategoryType: 'public.app-category.developer-tools',
   icon,
 })

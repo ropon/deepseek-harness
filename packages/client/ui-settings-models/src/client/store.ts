@@ -209,6 +209,8 @@ export function providerUsable(row: ProviderRow): boolean {
  * Pick the provider offered by first-run onboarding. ClawRouters is preferred
  * when its plugin contributes the route; otherwise the stock DeepSeek route
  * keeps the upstream Web experience unchanged.
+ * @param state - the joined Models settings state.
+ * @returns the preferred configured provider row, if its settings namespace exists.
  */
 export function onboardingTarget(state: ModelsSettingsState): ProviderRow | undefined {
   const priorities = ['clawrouters', 'deepseek-official']

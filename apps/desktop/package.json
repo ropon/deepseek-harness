@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-desktop",
-  "productName": "DeepSeek Harness",
-  "description": "Electron desktop application for DeepSeek Harness",
+  "productName": "DSH Desktop",
+  "description": "Unofficial community desktop distribution of DeepSeek Harness",
   "version": "0.1.0-rc.5",
   "publishConfig": {
     "access": "public"
@@ -15,7 +15,9 @@
   "main": "lib/main.js",
   "files": [
     "lib/*.js",
-    "assets/*"
+    "assets/icon.icns",
+    "assets/icon.ico",
+    "assets/icon.png"
   ],
   "scripts": {
     "dev": "pnpm --dir ../.. run build && electron .",

@@ -117,7 +117,11 @@ export function resultText(node: ToolResultNode): string {
   return parts.join('\n')
 }
 
-/** Extract canonical image references from a settled Tool result. */
+/**
+ * Extract canonical image references from a settled Tool result.
+ * @param node - the Tool call or settled result node.
+ * @returns attachment descriptors for every image content block.
+ */
 export function resultImages(node: ToolCallBlock): { attachment: ImageAttachmentRef }[] {
   if (!('kind' in node)) return []
   return node.content.flatMap(block => block.type === 'image' ? [{ attachment: block.attachment }] : [])
