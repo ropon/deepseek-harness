@@ -38,7 +38,7 @@ function isWithin(parent, child) {
   return pathFromParent === '' || (!pathFromParent.startsWith(`..${sep}`) && pathFromParent !== '..')
 }
 
-async function makeDependencyLinksPortable(packagedAppDir) {
+async function makeDependencyLinksPortable(packagedAppDir, materializeWorkspaceLinks = false) {
   const links = await collectSymlinks(packagedAppDir)
   const copiedWorkspaceTargets = new Map()
 
@@ -52,6 +52,18 @@ async function makeDependencyLinksPortable(packagedAppDir) {
     } else if (currentTarget === appDir) {
       portableTarget = packagedAppDir
     } else if (isWithin(repoRoot, currentTarget)) {
+      if (materializeWorkspaceLinks) {
+        await rm(link)
+        await cp(currentTarget, link, {
+          recursive: true,
+          force: true,
+          filter(source) {
+            const segments = relative(currentTarget, source).split(sep)
+            return !segments.some(segment => ['.package-stage', 'node_modules', 'out'].includes(segment))
+          },
+        })
+        continue
+      }
       const repoRelativeTarget = relative(repoRoot, currentTarget)
       portableTarget = join(packagedAppDir, '.workspace', repoRelativeTarget)
       if (!copiedWorkspaceTargets.has(currentTarget)) {
@@ -74,6 +86,13 @@ async function makeDependencyLinksPortable(packagedAppDir) {
     await symlink(relative(dirname(link), portableTarget), link)
   }
 
+  if (materializeWorkspaceLinks) {
+    for (const link of await collectSymlinks(packagedAppDir)) {
+      if (link.includes(`${sep}.bin${sep}`)) await rm(link)
+      else throw new Error(`desktop package: unexpected link in hoisted installer payload: ${link}`)
+    }
+  }
+
   for (const link of await collectSymlinks(packagedAppDir)) {
     const target = resolve(dirname(link), await readlink(link))
     if (!isWithin(packagedAppDir, target)) {
@@ -92,18 +111,23 @@ function packagedResourcesDirectory(output) {
 
 async function assertRequiredPeersResolvable() {
   const missing = new Set()
-  const pattern = 'node_modules/.pnpm/*/node_modules/@deepseek-ai/*/package.json'
+  const patterns = [
+    'node_modules/.pnpm/*/node_modules/@deepseek-ai/*/package.json',
+    'node_modules/@deepseek-ai/*/package.json',
+  ]
 
-  for await (const relativeManifest of glob(pattern, { cwd: stageDir })) {
-    const manifestPath = join(stageDir, relativeManifest)
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
-    for (const peerName of Object.keys(manifest.peerDependencies ?? {})) {
-      if (!peerName.startsWith('@deepseek-ai/')) continue
-      if (manifest.peerDependenciesMeta?.[peerName]?.optional === true) continue
-      try {
-        createRequire(manifestPath).resolve(`${peerName}/package.json`)
-      } catch {
-        missing.add(peerName)
+  for (const pattern of patterns) {
+    for await (const relativeManifest of glob(pattern, { cwd: stageDir })) {
+      const manifestPath = join(stageDir, relativeManifest)
+      const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
+      for (const peerName of Object.keys(manifest.peerDependencies ?? {})) {
+        if (!peerName.startsWith('@deepseek-ai/')) continue
+        if (manifest.peerDependenciesMeta?.[peerName]?.optional === true) continue
+        try {
+          createRequire(manifestPath).resolve(`${peerName}/package.json`)
+        } catch {
+          missing.add(peerName)
+        }
       }
     }
   }
@@ -169,7 +193,7 @@ const outputs = await packager({
 for (const output of outputs) {
   const packagedAppDir = packagedResourcesDirectory(output)
   await lstat(packagedAppDir)
-  await makeDependencyLinksPortable(packagedAppDir)
+  await makeDependencyLinksPortable(packagedAppDir, useHoistedInstallerPayload)
   console.log(`desktop package: ${output}`)
   if (process.env.DSH_DESKTOP_BUILD_INSTALLER === '1') {
     const artifacts = await buildDesktopInstaller({ appDir, prepackaged: output })

@@ -3,7 +3,7 @@
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { _electron as electron } from 'playwright'
+import { _electron as electron, type Page } from 'playwright'
 import { afterEach, describe, expect, it } from 'vitest'
 
 const appDir = resolve(import.meta.dirname, '..')
@@ -35,7 +35,18 @@ describe('desktop application', () => {
       timeout: 90_000,
     })
     try {
-      const page = await application.firstWindow({ timeout: 90_000 })
+      let page: Page
+      try {
+        page = await application.firstWindow({ timeout: 90_000 })
+      } catch (error) {
+        let backendLog = '(backend log was not created)'
+        try {
+          backendLog = await readFile(join(logDirectory, 'backend.log'), 'utf8')
+        } catch {
+          // Preserve the launch failure when the backend exited before logging.
+        }
+        throw new Error(`desktop window did not open\nbackend log:\n${backendLog}`, { cause: error })
+      }
       const pageErrors: string[] = []
       const consoleErrors: string[] = []
       const failedRequests: string[] = []
