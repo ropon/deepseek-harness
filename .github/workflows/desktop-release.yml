@@ -144,6 +144,7 @@ jobs:
           path: dist
           merge-multiple: true
           run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ github.token }}
 
       - name: Create or update prerelease
         env:
