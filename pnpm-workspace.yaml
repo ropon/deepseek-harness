@@ -48,6 +48,9 @@ allowBuilds:
   '@google/genai': false
   protobufjs: false
   node-addon-require-builtin: false
+  # electron-builder pulls the optional Squirrel.Windows maker, but DSH Desktop
+  # emits NSIS installers only and does not need electron-winstaller's script.
+  electron-winstaller: false
   # JSONL durability calls MoveFileExW with write-through publication on Windows.
   koffi: true
   # The Python runtime deploy includes the reviewed workspace postinstall that

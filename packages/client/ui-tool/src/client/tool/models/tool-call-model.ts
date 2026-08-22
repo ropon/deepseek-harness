@@ -11,6 +11,7 @@
 // that produces the values).
 import { abbreviateHomePath } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ToolCallBlock, ToolResultNode } from '@deepseek-ai/dsh-client-runtime/client'
+import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 
 export type { ToolCallBlock } from '@deepseek-ai/dsh-client-runtime/client'
 
@@ -99,9 +100,9 @@ export interface ToolRowModel {
 }
 
 /**
- * Flatten a settled result's content blocks to display text: text blocks
- * verbatim, other block shapes as pretty JSON. Empty content on a failed call
- * falls back to the structured error's `name: code` line.
+ * Flatten a settled result's content blocks to display text: text blocks are
+ * verbatim, images render separately, and other block shapes become pretty
+ * JSON. Empty content on a failed call falls back to `name: code`.
  * @param node - the settled result node.
  * @returns the flattened result text (may be empty).
  */
@@ -109,12 +110,22 @@ export function resultText(node: ToolResultNode): string {
   const parts: string[] = []
   for (const block of node.content) {
     if (block.type === 'text') parts.push(block.text)
-    else parts.push(JSON.stringify(block, null, 2))
+    else if (block.type !== 'image') parts.push(JSON.stringify(block, null, 2))
   }
   if (parts.length === 0 && node.error !== undefined) {
     parts.push(`${node.error.name}: ${node.error.code}`)
   }
   return parts.join('\n')
+}
+
+/**
+ * Extract canonical image references from a settled Tool result.
+ * @param node - the Tool call or settled result node.
+ * @returns attachment descriptors for every image content block.
+ */
+export function resultImages(node: ToolCallBlock): { attachment: ImageAttachmentRef }[] {
+  if (!('kind' in node)) return []
+  return node.content.flatMap(block => block.type === 'image' ? [{ attachment: block.attachment }] : [])
 }
 
 function parseArgs(argsRaw: string): unknown {

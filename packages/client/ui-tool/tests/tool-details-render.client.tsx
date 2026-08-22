@@ -66,6 +66,8 @@ export function renderToolDetails(
     return <ToolDetails
       block={details.block}
       cwd={details.cwd}
+      loadImage={details.loadImage}
+      renderSlot={() => null}
       useHostDescription={selector => selector(description)}
       t={t}
     />

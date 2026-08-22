@@ -213,12 +213,12 @@
     - id: ui-brand-official
       name: '@deepseek-ai/dsh-client-ui-brand-official'
 
-    - id: ui-attachment
-      name: '@deepseek-ai/dsh-client-ui-attachment'
-
     # Tool call tree, generic fallback, and keyed business Tool views.
     - id: ui-tool
       name: '@deepseek-ai/dsh-client-ui-tool'
+
+    - id: ui-attachment
+      name: '@deepseek-ai/dsh-client-ui-attachment'
 
     - id: ui-cordis
       name: '@deepseek-ai/dsh-client-ui-cordis'

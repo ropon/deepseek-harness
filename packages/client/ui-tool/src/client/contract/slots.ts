@@ -2,7 +2,7 @@
 import type { HostDescriptionSource } from '@deepseek-ai/dsh-client-connection/client'
 import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ToolCallBlock } from '@deepseek-ai/dsh-client-runtime/client'
-import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
+import type { MessageImagesOwnerProps, RenderMessageImages } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
@@ -22,6 +22,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
      * function of what the turn already knows.
      */
     'tool.call.toolview': { kind: 'keyed'; scope: 'session'; owner: ToolCallOwnerProps }
+    /** Optional attachment-plugin renderer for generated images in Tool details. */
+    'tool.details.result.images': { kind: 'single'; scope: 'session'; owner: MessageImagesOwnerProps }
   }
 }
 
@@ -39,6 +41,8 @@ export interface ToolCallOwnerProps {
   home?: string | undefined
   /** Open a Tool argument path through the Host. */
   openFile: (path: string) => void
+  /** Render Tool-result images through the active attachment presentation plugin. */
+  renderMessageImages: RenderMessageImages
   /** Inspect this call in the trajectory view when available. */
   inspect?: (() => void) | undefined
 }
@@ -62,5 +66,9 @@ export type ToolTreeProps = PropsRuntime<'conversation.chat.node', 'tool-call'>
 
 /** Full props of the selected Tool output renderer in the details panel. */
 export type ToolDetailsProps = PropsRuntime<'conversation.details.tool'>
+  & PropsRenderSlots<'tool.details.result.images'>
   & PropsLocale<'conversation'>
   & InjectFace<ToolHostDescriptionInjected>
+
+/** Full props of the attachment renderer mounted inside Tool details. */
+export type ToolDetailsImagesProps = PropsRuntime<'tool.details.result.images'> & PropsLocale<'conversation'>

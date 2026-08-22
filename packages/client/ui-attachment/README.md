@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Dynamic attachment presentation plugin for the conversation UI. It waits for the conversation package's `conversation.input.attachments` and `conversation.message.images` declarations through `ctx.slots.inject`, then registers the composer draft-image rail, document drop target, chat-history image gallery, and original-image lightbox. The conversation slot owner supplies attachment data, image loading, callbacks, and its namespace translator; presentation components remain pure props and are not exported from the package entry.
+Dynamic attachment presentation plugin for conversation and Tool output. It waits through `ctx.slots.inject` for `conversation.input.attachments`, `conversation.message.images`, and `tool.details.result.images`, then registers the composer draft-image rail, document drop target, history and Tool-result galleries, and original-image lightbox. Each slot owner supplies attachment data, session-authorized image loading, callbacks, and the conversation namespace translator; presentation components remain pure props and are not exported from the package entry.
 
 ## Attachment rail
 

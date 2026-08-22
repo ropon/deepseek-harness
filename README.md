@@ -2,6 +2,8 @@
 
 English | [中文](README.zh.md)
 
+> **Community fork:** DSH Desktop builds from this fork are unofficial community distributions maintained by [ropon](https://github.com/ropon). They are not affiliated with or endorsed by DeepSeek.
+
 DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
 
 It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
@@ -35,6 +37,16 @@ pnpm dsh web
 ```
 
 `pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
+
+### Run the desktop preview
+
+The Electron application manages the same local Web UI and Harness process behind a desktop window. It bundles the ClawRouters plugin; on first launch, enter one ClawRouters API key to enable chat, vision input, image generation, video generation, and Web search:
+
+```sh
+pnpm desktop:dev
+```
+
+Build a consumer installer for the current operating system and CPU architecture with `pnpm desktop:installer` (DMG on macOS, assisted NSIS EXE on Windows). `pnpm desktop:package` creates the unpacked development build. Generated tool images render inline in the conversation and details panel. See the [desktop application guide](apps/desktop/README.md) for packaging limits and data locations.
 
 ## Community and support
 

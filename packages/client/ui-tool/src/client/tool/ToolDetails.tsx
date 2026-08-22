@@ -5,7 +5,7 @@ import { diffCardModel } from './models/diff-card-model.ts'
 import { readCardModel } from './models/read-card-model.ts'
 import { searchCardModel } from './models/search-card-model.ts'
 import { terminalBlockLabels, terminalCardModel } from './models/terminal-card-model.ts'
-import { resultText } from './models/tool-call-model.ts'
+import { resultImages, resultText } from './models/tool-call-model.ts'
 import { webCardModel } from './models/web-card-model.ts'
 import css from './ToolDetails.module.css'
 
@@ -16,8 +16,8 @@ import css from './ToolDetails.module.css'
  * @returns the details output body.
  */
 export function ToolDetails({
-  block, cwd, useHostDescription, t,
-}: Pick<ToolDetailsProps, 'block' | 'cwd' | 'useHostDescription' | 't'>) {
+  block, cwd, loadImage, renderSlot, useHostDescription, t,
+}: Pick<ToolDetailsProps, 'block' | 'cwd' | 'loadImage' | 'renderSlot' | 'useHostDescription' | 't'>) {
   const home = useHostDescription(description => description?.home)
   const terminal = terminalCardModel(block, cwd)
   if (terminal !== null) {
@@ -54,9 +54,18 @@ export function ToolDetails({
     )
   }
   if (!('kind' in block)) return <div className={css.empty}>{t('details.running')}</div>
+  const images = resultImages(block)
+  const body = resultText(block)
   return (
-    <pre className={css.code} data-error={block.isError || undefined}>
-      {resultText(block)}
-    </pre>
+    <>
+      {images.length > 0 ? (
+        <div className={css.images}>
+          {renderSlot('tool.details.result.images', { images, loadImage, align: 'start' })}
+        </div>
+      ) : null}
+      {body !== '' ? (
+        <pre className={css.code} data-error={block.isError || undefined}>{body}</pre>
+      ) : null}
+    </>
   )
 }

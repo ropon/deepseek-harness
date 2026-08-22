@@ -242,7 +242,7 @@ describe('terminalCardModel', () => {
 
 describe('chat row terminal body', () => {
   const ownerProps = (block: RunningToolCall | ToolResultNode): GenericToolCardProps => ({
-    callId: 'c1', toolName: 'bash', block, openFile: vi.fn(), t,
+    callId: 'c1', toolName: 'bash', block, openFile: vi.fn(), renderMessageImages: vi.fn(() => null), t,
   })
 
   /** The whole summary row is the expand toggle (ToolRow's unified interaction). */
@@ -475,6 +475,7 @@ describe('DetailsPanel Output section', () => {
         useStore={bindSnapshotSelector(chat)}
         actions={chat.actions}
         closeDetails={vi.fn()}
+        loadImage={vi.fn(() => Promise.resolve('blob:test'))}
         t={t}
       />,
     )
@@ -661,6 +662,7 @@ describe('DetailsPanel Output section', () => {
         useStore={bindSnapshotSelector(chat)}
         actions={chat.actions}
         closeDetails={closeDetails}
+        loadImage={vi.fn(() => Promise.resolve('blob:test'))}
         t={t}
       />,
     )

@@ -2,6 +2,8 @@
 
 [English](README.md) | 中文
 
+> **社区 Fork：**本 Fork 提供的 DSH Desktop 安装包是由 [ropon](https://github.com/ropon) 维护的非官方社区发行版，与 DeepSeek 无隶属关系，也未获得其背书。
+
 DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的开源 agent harness（智能体框架）。
 
 它采用**一切皆插件**的架构，并由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper)。
@@ -39,6 +41,16 @@ pnpm dsh web
 ```
 
 `pnpm run build` 会准备仓库产物。`pnpm dsh web` 会直接使用这些已构建产物，不会重新构建。
+
+### 运行桌面预览版
+
+Electron 应用会在桌面窗口背后管理同一个本地 Web UI 和 Harness 进程。安装包默认内置 ClawRouters 插件；首次启动只需填写一个 ClawRouters API Key，即可使用对话、图片识别、生图、生视频和联网搜索：
+
+```sh
+pnpm desktop:dev
+```
+
+运行 `pnpm desktop:installer` 可为当前操作系统与 CPU 架构构建面向用户的安装器（macOS 为 DMG，Windows 为引导式 NSIS EXE）。`pnpm desktop:package` 用于生成未归档开发构建。工具生成的图片会在会话和详情面板中直接渲染。打包限制与数据位置参见[桌面应用指南](apps/desktop/README.zh.md)。
 
 ## 社区与支持
 

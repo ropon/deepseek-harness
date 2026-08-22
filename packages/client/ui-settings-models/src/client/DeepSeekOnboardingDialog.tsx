@@ -1,9 +1,7 @@
 /**
- * Official-DeepSeek first-run step. Readiness comes from the same
- * provider/settings/credential join as the Models page: any provider the user
- * can already talk to ends the step, and only a user with none is offered the
- * official DeepSeek route. The step reuses that page's credential editor in
- * the onboarding plugin's shared modal, so the key is entered once.
+ * First-run provider credential step. Readiness comes from the same joined
+ * Models snapshot: any usable provider ends the step, an installed
+ * ClawRouters route is preferred, and official DeepSeek remains the fallback.
  */
 
 import { useEffect } from 'react'
@@ -12,7 +10,7 @@ import type { IApiClient } from '@deepseek-ai/dsh-api-remotes/client'
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
 import type { InjectFace, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ModelsSettingsState, ModelsSettingsStore } from './store.ts'
-import { onboardingReadiness } from './store.ts'
+import { onboardingReadiness, onboardingTarget } from './store.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'
 import { ProviderEditor } from './ProviderEditor.tsx'
 import type { en } from './locales.ts'
@@ -45,8 +43,7 @@ function assertNever(_value: never): never {
 }
 
 /**
- * Prompt a first-run user for the official DeepSeek credential while no
- * provider can serve requests and that credential is writable.
+ * Prompt a first-run user for the preferred writable provider credential.
  * @param props - settings-shell owner state and Models feature dependencies.
  * @returns the onboarding modal or null when onboarding needs no intervention.
  */
@@ -80,12 +77,9 @@ export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): 
       return assertNever(readiness)
   }
 
-  const row = state.rows.find(candidate =>
-    candidate.entry.provider === 'deepseek-official'
-    && candidate.entry.settingsNs === 'llm-deepseek'
-    && candidate.entry.settingsPath.length === 0)
-  const namespace = state.namespaces.get('llm-deepseek')
-  /* v8 ignore next 2 -- credential-missing is derived only from this exact joined row. */
+  const row = onboardingTarget(state)
+  const namespace = row === undefined ? undefined : state.namespaces.get(row.entry.settingsNs)
+  /* v8 ignore next 2 -- credential-missing is derived only from the selected joined row. */
   if (row === undefined || namespace === undefined) return null
 
   const finishCredential = (changed: boolean): void => {
@@ -98,7 +92,7 @@ export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): 
 
   return (
     <OnboardingModal title={t('onboardingTitle')}>
-      <p className={styles.description}>{t('onboardingDescription')}</p>
+      <p className={styles.description}>{t('onboardingDescription').replace('{provider}', row.entry.displayName)}</p>
       <div className={styles.editor}>
         <ProviderEditor
           provider={row.entry.provider}

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CredentialView } from '@deepseek-ai/dsh-api-remotes/client'
 import type { ModelsSettingsState, ProviderRow } from '../src/client/store.ts'
-import { onboardingReadiness, providerUsable } from '../src/client/store.ts'
+import { onboardingReadiness, onboardingTarget, providerUsable } from '../src/client/store.ts'
 
 const missingCredential: CredentialView = { configured: false, writable: true }
 
@@ -41,6 +41,23 @@ function otherRow(overrides: Partial<ProviderRow> = {}): ProviderRow {
   }
 }
 
+function clawRoutersRow(overrides: Partial<ProviderRow> = {}): ProviderRow {
+  return {
+    entry: {
+      provider: 'clawrouters',
+      displayName: 'ClawRouters',
+      settingsNs: 'llm-pi-ai',
+      settingsPath: ['providers', 'clawrouters'],
+      active: true,
+    },
+    configured: true,
+    removable: false,
+    apiKeyEnv: 'CLAWROUTERS_API_KEY',
+    credential: missingCredential,
+    ...overrides,
+  }
+}
+
 function state(overrides: Partial<ModelsSettingsState> = {}): ModelsSettingsState {
   return {
     status: 'ready',
@@ -48,7 +65,7 @@ function state(overrides: Partial<ModelsSettingsState> = {}): ModelsSettingsStat
     credentialError: null,
     writable: true,
     rows: [row()],
-    namespaces: new Map(),
+    namespaces: new Map([['llm-deepseek', {} as never]]),
     ...overrides,
   }
 }
@@ -126,5 +143,24 @@ describe('onboardingReadiness', () => {
       kind: 'unavailable',
       reason: 'settings-read-only',
     })
+  })
+})
+
+describe('onboardingTarget', () => {
+  it('prefers an installed ClawRouters route over the stock DeepSeek prompt', () => {
+    const namespaces = new Map([
+      ['llm-deepseek', {} as never],
+      ['llm-pi-ai', {} as never],
+    ])
+    const withPlugin = state({ rows: [row(), clawRoutersRow()], namespaces })
+    expect(onboardingTarget(withPlugin)?.entry.provider).toBe('clawrouters')
+    expect(onboardingReadiness(withPlugin)).toEqual({ kind: 'credential-missing' })
+  })
+
+  it('falls back to DeepSeek when ClawRouters is not installed', () => {
+    const target = onboardingTarget(state({
+      namespaces: new Map([['llm-deepseek', {} as never]]),
+    }))
+    expect(target?.entry.provider).toBe('deepseek-official')
   })
 })

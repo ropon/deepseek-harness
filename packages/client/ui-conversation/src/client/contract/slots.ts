@@ -436,6 +436,8 @@ export interface DetailsToolOwnerProps {
   block: ToolCallBlock
   /** Session workspace root for card cwd and relative-path display. */
   cwd?: string | undefined
+  /** Resolve a session-authorized image nested in the Tool result. */
+  loadImage: (attachment: ImageAttachmentRef) => Promise<string>
 }
 
 /**
@@ -804,6 +806,8 @@ export type MessageImagesProps = PropsRuntime<'conversation.message.images'> & P
 export interface DetailsInjected {
   /** Close the details panel (layout geometry stays with ctx.layout). */
   closeDetails: () => void
+  /** Resolve a session-authorized historical image for inline display. */
+  loadImage: (attachment: ImageAttachmentRef) => Promise<string>
 }
 
 /** Full details-slot props: selection store, Tool output seat, injected close callback, and locale. */

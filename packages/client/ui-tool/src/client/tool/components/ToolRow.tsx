@@ -24,6 +24,8 @@ import {
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { WebBlockProps } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
+import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
+import type { RenderMessageImages } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { CHAT_DIFF_MAX_LINES, type DiffCardModel } from '../models/diff-card-model.ts'
 import { CHAT_READ_MAX_LINES, type ReadCardModel } from '../models/read-card-model.ts'
 import { CHAT_SEARCH_MAX_LINES, type SearchCardModel } from '../models/search-card-model.ts'
@@ -53,6 +55,10 @@ export interface ToolRowProps {
   body: string | null
   /** Flattened result text for the expanded Output section; null/absent = no output section. */
   output?: string | null | undefined
+  /** Canonical images returned by the Tool, displayed before textual output. */
+  images?: readonly { attachment: ImageAttachmentRef }[] | undefined
+  /** Slot-backed Tool-result image renderer. */
+  renderImages?: RenderMessageImages | undefined
   /** Error first line shown as the collapsed summary on an error row; null/absent = keep `summary`. */
   errorSummary?: string | null | undefined
   /**
@@ -135,6 +141,8 @@ export function ToolRow({
   summarySuffix,
   body,
   output,
+  images,
+  renderImages,
   errorSummary,
   terminal,
   diff,
@@ -153,11 +161,12 @@ export function ToolRow({
   const searchBody = search ?? null
   const webBody = web ?? null
   const outputText = output ?? null
+  const outputImages = images ?? []
   // A card replaces the text body; a call carries at most one card kind, so the
   // card props are mutually exclusive. Any of them, or a text body/output,
   // makes the row expandable.
   const card = terminalBody ?? diffBody ?? readBody ?? searchBody ?? webBody
-  const expandable = body !== null || outputText !== null || card !== null
+  const expandable = body !== null || outputText !== null || outputImages.length > 0 || card !== null
   const open = expanded && expandable
   // The run-state label AT needs: the StateDot and the running sweep are both
   // aria-hidden / colour-only, so a stopped or running row is otherwise silent.
@@ -286,6 +295,11 @@ export function ToolRow({
                                 </span>
                               </div>
                             )}
+                          </div>
+                        )}
+                        {outputImages.length > 0 && renderImages !== undefined && (
+                          <div className={css.imageOutput}>
+                            {renderImages({ images: outputImages, align: 'start' })}
                           </div>
                         )}
                       </>
